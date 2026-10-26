@@ -17,7 +17,7 @@ function App() {
       setError('')
 
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=imperial`
       )
 
       if (!response.ok) {
@@ -52,7 +52,10 @@ function App() {
       {weather && (
         <div id='weatherInfo' className='weather_card'>
           <h2>{weather.name}</h2>
-          <p>Temperature: {Math.round(weather.main.temp)}°C</p>
+          <p>
+            Temperature: {Math.round(weather.main.temp)}°F /{'  '}
+            {Math.round((weather.main.temp - 32) * 5 / 9)}°C
+          </p>
           <p>Condition: {weather.weather[0].description}</p>
         </div>
       )}
