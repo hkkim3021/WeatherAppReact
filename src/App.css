@@ -77,6 +77,47 @@
 
 .weather_card .weather_icon {
     font-size: 64px;
-    margin: 10px 0 20px;
+    margin: 35px 0 35px;
 }
 
+.location_suggestions {
+    width: 100%;
+    margin-top: 5px;
+    background: #14243b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden; /* overflow: hidden makes it so anything outside the box is clipped and cant be seen*/
+    text-align: left;
+}
+
+.location_option {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: #f3f4f6;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.location_option:hover {
+    background: #243b5a;
+}
+
+.temperature_row {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.temperature_row p {
+    margin: 0;
+}
+
+.temperature_celsius {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 15px 0 5px; 
+}

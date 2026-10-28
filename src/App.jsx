@@ -9,6 +9,28 @@ function App() {
 
   const apiKey = '46a5dcdf123616ec7cbf371f7577cc81'
 
+  async function searchLocations(searchText) {
+    if(searchText.trim().length < 2) {
+      setLocations([])
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchText)}&limit=5&appid=${apiKey}`
+      )
+
+      if (!response.ok) {
+        throw new Error('Unable to find locations.')
+      }
+
+      const data = await response.json()
+      setLocations(data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   async function handleSearch() {
     if (city.trim() === '') {
       setError('Please enter a city.')
@@ -59,7 +81,11 @@ function App() {
           id='cityInput' 
           placeholder='Enter city...'
           value={city}
-          onChange={(e) => setCity(e.target.value)}
+          autoComplete='off'
+          onChange={(e) => {
+            setCity(e.target.value)
+            searchLocations(e.target.value)
+          }}
         />
         <button id='searchBtn' type='submit'>
           Search
@@ -67,43 +93,42 @@ function App() {
       </form>
 
       {locations.length > 0 && (
-        <select
-        defaultValue=''
-          onChange={async (e) => {
-            const selectedLocation = locations[e.target.value]
-            
-            if (!selectedLocation) return
-
-            try {
-              setError('')
-
-              const response = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&appid=${apiKey}&units=imperial`
-              )
-
-              if (!response.ok) {
-                throw new Error('Unable to fetch weather.')
-              }
-
-              const data = await response.json()
-              setWeather(data)
-              
-            } catch (err) {
-              setWeather(null)
-              setError(err.message)
-            }
-          }}
-        >
-          <option value="">Choose a location</option>
-
+        <div className='location_suggestions'>
           {locations.map((location, index) => (
-            <option key={index} value={index}>
+            <button
+              type='button'
+              className='location_option'
+              key={`${location.lat}-${location.lon}`}
+              onClick={async () => {
+                setCity(
+                  `${location.name}${location.state ? `, ${location.state}` : ''}, ${location.country}`
+                )
+                setLocations([])
+                setError('')
+
+                try {
+                  const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=imperial`
+                  )
+
+                  if (!response.ok) {
+                    throw new Error('Unable to fetch weather.')
+                  }
+
+                  const data = await response.json()
+                  setWeather(data)
+                } catch (err) {
+                  setWeather(null)
+                  setError(err.message)
+                }
+              }}
+            >
               {location.name}
-              {location.state ? `, ${location.state}` : ''},
-              {location.country}
-            </option>
+              {location.state ? `, ${location.state}` : ''}
+              {`, ${location.country}`}
+            </button>
           ))}
-        </select>
+        </div>
       )}
 
       {error && <p className='error'>{error}</p>}
@@ -118,13 +143,15 @@ function App() {
              weather.weather[0].main === 'Rain' ? '🌧️':
              weather.weather[0].main === 'Snow' ? '❄️': '🌡️'}
           </p>
-          <p className='temperature'>
-            {Math.round(weather.main.temp)}°F
-          </p>
-          <p>
-            {Math.round((weather.main.temp - 32) * 5 / 9)}°C
-          </p>
-          <p>Condition: {weather.weather[0].description
+          <div className='temperature_row'>
+            <p className='temperature'>
+              {Math.round(weather.main.temp)}°F
+            </p>
+            <p className='temperature_celsius'>
+              {Math.round((weather.main.temp - 32) * 5 / 9)}°C
+            </p>
+          </div>
+          <p>{weather.weather[0].description
             .split('')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join('')}
