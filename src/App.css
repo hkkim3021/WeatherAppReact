@@ -72,6 +72,7 @@
     font-size: 32px;
     margin-top: 30px;
     margin-bottom: 25px;
+    color: #f3f4f6;
 }
 
 .weather_card .weather_icon {
@@ -79,10 +80,3 @@
     margin: 10px 0 20px;
 }
 
-.app_title {
-    text-align: center;
-    font-size: 32px;
-    margin-top: 30px;
-    margin-bottom: 25px;
-    color: #f3f4f6;
-}

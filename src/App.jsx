@@ -5,6 +5,7 @@ function App() {
   const [city, setCity] = useState('') // stores the city typed into search box
   const [weather, setWeather] = useState(null) // stores the weather data returned by the API
   const [error, setError] = useState('') // stores an error message if the search fails
+  const [locations, setLocations] = useState([]) // locations will hold matching places from API; setLocations will update; list starts empty
 
   const apiKey = '46a5dcdf123616ec7cbf371f7577cc81'
 
@@ -16,38 +17,94 @@ function App() {
 
     try {
       setError('')
+      setWeather(null)
+      setLocations([])
 
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=imperial`
+        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=5&appid=${apiKey}`
       )
 
       if (!response.ok) {
-        throw new Error('City not found. Please try again.')
+        throw new Error('Unable to find locations.')
       }
 
       const data = await response.json()
 
-      setWeather(data)
+      if (data.length === 0) {
+        throw new Error('No locations found.')
+      }
+
+      setLocations(data)
+
     } catch (err) {
       setWeather(null)
       setError(err.message)
     }
   }
-  
+  {/*<div> becomes <form> because forms support submission when user presses Enter
+    - onSubmit calls existing handleSearch() function. 
+    - e.preventDefault() prevents browser from refreshing when form is submitted
+    - type="submit" tells button to submit form*/}
   return (
     <div className='main'>
       <h1 className='app_title'>Weather Dashboard</h1>
-      <div className='search_box'>
+      <form className='search_box'
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch();
+        }}
+      >
         <input 
-        type='text' 
-        id='cityInput' 
-        placeholder='Enter city...'
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
+          type='text' 
+          id='cityInput' 
+          placeholder='Enter city...'
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
         />
-        <button id='searchBtn' onClick={handleSearch}>Search</button>
-      </div>
+        <button id='searchBtn' type='submit'>
+          Search
+        </button>
+      </form>
 
+      {locations.length > 0 && (
+        <select
+        defaultValue=''
+          onChange={async (e) => {
+            const selectedLocation = locations[e.target.value]
+            
+            if (!selectedLocation) return
+
+            try {
+              setError('')
+
+              const response = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&appid=${apiKey}&units=imperial`
+              )
+
+              if (!response.ok) {
+                throw new Error('Unable to fetch weather.')
+              }
+
+              const data = await response.json()
+              setWeather(data)
+              
+            } catch (err) {
+              setWeather(null)
+              setError(err.message)
+            }
+          }}
+        >
+          <option value="">Choose a location</option>
+
+          {locations.map((location, index) => (
+            <option key={index} value={index}>
+              {location.name}
+              {location.state ? `, ${location.state}` : ''},
+              {location.country}
+            </option>
+          ))}
+        </select>
+      )}
 
       {error && <p className='error'>{error}</p>}
 
